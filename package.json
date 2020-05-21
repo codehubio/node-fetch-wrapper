@@ -1,0 +1,31 @@
+{
+  "name": "node-fetch-wrapper",
+  "version": "0.0.1",
+  "description": "A simple wrapper for node-fetch",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/_mocha --timeout 30000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codehubio/fetch-wrapper.git"
+  },
+  "keywords": [
+    "node-fetch",
+    "wrapper"
+  ],
+  "author": "hoa <hoa at codehub dot io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codehubio/fetch-wrapper/issues"
+  },
+  "homepage": "https://github.com/codehubio/fetch-wrapper#readme",
+  "dependencies": {
+    "abort-controller": "^3.0.0",
+    "node-fetch": "^2.6.0",
+    "url-join": "^4.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^7.1.2"
+  }
+}
