@@ -9,7 +9,7 @@ function FetchWrapper(baseUrl, timeout = 30000) {
 }
 
 function action(method) {
-  return async function (uri = '', opts = {}) {
+  return function (uri = '', opts = {}) {
     const controller = this.controller;
     const timeout = setTimeout(controller.abort.bind(controller), this.timeout);
     const newOpts = { ...opts, method, signal: controller.signal };
