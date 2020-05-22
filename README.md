@@ -1,6 +1,7 @@
+[![Build Status](https://travis-ci.org/codehubio/node-fetch-wrapper.svg?branch=master)](https://travis-ci.org/codehubio/node-fetch-wrapper)
 # a wrapper for node-fetch
 
-this is a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout.
+a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout.
 
 ## installation
 ```npm install node-fetch-wrapper```
