@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/codehubio/node-fetch-wrapper.svg?branch=master)](https://travis-ci.org/codehubio/node-fetch-wrapper)
+[!Dependency Status](https://david-dm.org/hoa/node-fetch-wrapper.svg)
 # a wrapper for node-fetch
 
 a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout.
