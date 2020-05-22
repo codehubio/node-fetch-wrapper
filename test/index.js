@@ -15,8 +15,8 @@ describe('node fetch wrapper test', () => {
         }, 200);
       }).listen(5000, async () => {
         try {
-          const wrapper = new FetchWrapper('http://localhost:5000/', 150);
-          const t = await wrapper.get();
+          const wrapper = new FetchWrapper('http://localhost:5000/', {}, 150);
+          await wrapper.get();
           reject('should fail');
         } catch (error) {
           resolve(error);
@@ -32,8 +32,8 @@ describe('node fetch wrapper test', () => {
         }, 100);
       }).listen(5000, async () => {
         try {
-          const wrapper = new FetchWrapper('http://localhost:5000/', 150);
-          const t = await wrapper.get();
+          const wrapper = new FetchWrapper('http://localhost:5000/', {}, 150);
+          await wrapper.get();
           resolve('should be successful');
         } catch (error) {
           reject(error);
