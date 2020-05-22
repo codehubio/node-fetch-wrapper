@@ -14,6 +14,7 @@ a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), wit
 ```
 // init a wrapper with base url http://example.com 
 // request's timeout is 15 seconds
+const FetchWrapper = require('node-fetch-wrapper');
 const wrapper = new FetchWrapper('http://example.com', 15000);
 
 // identical to fetch('http://example.com/data')
