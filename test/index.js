@@ -41,4 +41,27 @@ describe('node fetch wrapper test', () => {
       });
     });
   });
+  it('should respect headers', async () => {
+    await new Promise((resolve, reject) => {
+      server = http.createServer(function (req, res) {
+        assert.equal(req.headers['content-type'], 'application/json', 'Content-Type should be application/json');
+        assert.equal(req.headers['customheader'], 'custom value', 'customHeader should be custom value');
+        res.end();
+      }).listen(5000, async () => {
+        try {
+          const wrapper = new FetchWrapper('http://localhost:5000/', {
+            'content-type': 'application/json'
+          }, 150);
+          await wrapper.get('', {
+            headers: {
+              customHeader: 'custom value'
+            }
+          });
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  });
 })
