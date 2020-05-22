@@ -7,36 +7,38 @@ describe('node fetch wrapper test', () => {
     server.close();
     server = null;
   });
-  it('should respect the timeout property', () => {
-    server = http.createServer(function (req, res) {
-      setTimeout(() => {
-        res.end();
-      }, 200);
-    }).listen(5000, async () => {
-      let success = false;
-      try {
-        const wrapper = new FetchWrapper('http://localhost:5000/', 150);
-        const t = await wrapper.get();
-        success = true;
-      } catch (error) {
-      }
-      assert.equal(success, false, 'request shoud fail');
+  it('should respect the timeout property', async () => {
+    await new Promise((resolve, reject) => {
+      server = http.createServer(function (req, res) {
+        setTimeout(() => {
+          res.end();
+        }, 200);
+      }).listen(5000, async () => {
+        try {
+          const wrapper = new FetchWrapper('http://localhost:5000/', 150);
+          const t = await wrapper.get();
+          reject('should fail');
+        } catch (error) {
+          resolve(error);
+        }
+      });
     });
   });
-  it('should be successul', () => {
-    server = http.createServer(function (req, res) {
-      setTimeout(() => {
-        res.end();
-      }, 100);
-    }).listen(5000, async () => {
-      let success = false;
-      try {
-        const wrapper = new FetchWrapper('http://localhost:5000/', 150);
-        const t = await wrapper.get();
-        success = true;
-      } catch (error) {
-      }
-      assert.equal(success, true, 'request shoud succeed');
+  it('should be successul', async () => {
+    await new Promise((resolve, reject) => {
+      server = http.createServer(function (req, res) {
+        setTimeout(() => {
+          res.end();
+        }, 100);
+      }).listen(5000, async () => {
+        try {
+          const wrapper = new FetchWrapper('http://localhost:5000/', 150);
+          const t = await wrapper.get();
+          resolve('should be successful');
+        } catch (error) {
+          reject(error);
+        }
+      });
     });
   });
 })
