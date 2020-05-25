@@ -1,6 +1,6 @@
 {
   "name": "node-fetch-wrapper",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A simple wrapper for node-fetch",
   "main": "index.js",
   "scripts": {
