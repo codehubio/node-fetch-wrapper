@@ -3,8 +3,8 @@
 # a wrapper for node-fetch
 
 a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout and retry. once enabled (maxAttempts set to > 1), it will
-  - retry when request times out(this is unchangeable)
-  - retry when request matche specific user-defined condition
+  - retry when request times out (this is unchangeable).
+  - retry when request matches specific user-defined condition.
 
 ## installation
 ```npm install node-fetch-wrapper```
