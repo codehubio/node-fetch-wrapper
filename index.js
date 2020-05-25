@@ -2,18 +2,24 @@ const fetch = require('node-fetch');
 const urlJoin = require('url-join');
 const AbortController = require('abort-controller');
 
-function FetchWrapper(baseUrl, headers = {}, timeout = 30000) {
+function FetchWrapper(baseUrl, opts = {
+  headers, timeout, maxAttempts
+}) {
   this.baseUrl = baseUrl;
-  this.timeout = timeout;
+  
+  this.opts = opts || {};;
+  this.opts.timeout = this.opts.timeout || 30000;
+  this.opts.maxAttempts = this.opts.maxAttempts || 1;
+  this.opts.headers = this.opts.headers || {};
+  
   this.controller = new AbortController();
-  this.headers = headers;
 }
 
 function action(method) {
   return function (uri = '', opts = {}) {
     const controller = this.controller;
-    const timeout = setTimeout(controller.abort.bind(controller), this.timeout);
-    const headers = {...this.headers, ...opts.headers };
+    const timeout = setTimeout(controller.abort.bind(controller), this.opts.timeout);
+    const headers = {...this.opts.headers, ...opts.headers };
     const newOpts = { ...opts, method, headers, signal: controller.signal };
     const url = urlJoin(this.baseUrl, uri);
     return fetch(url, newOpts);
