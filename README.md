@@ -9,8 +9,7 @@ a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), wit
 
 ## test
 ```npm test```
-
-## example
+## general usage
 
 ```
 // init a wrapper with base url http://example.com 
@@ -28,7 +27,9 @@ const wrapper = new FetchWrapper('http://example.com', {
   // default
   retryCondition: defaultRetryCondition
 });
-// by default, the retryCondition is
+```
+#### by default, the retryCondition has value:
+```
 function defaultRetryCondition(res) {
   const shouldRetryStatus =
     (res.status >= 100 && res.status <= 199) ||
@@ -36,12 +37,21 @@ function defaultRetryCondition(res) {
     (res.status >= 500 && res.status <= 599);
   return shouldRetryStatus;
 }
+```
+
+## example
+
+```
+
 // identical to fetch('http://example.com/data')
 wrapper.get('data');
 
 // identical to fetch('https://example.com/write', { method: 'post', body: 'some body'})
 wrapper.post('write', {
-  body: 'some body'
+  body: 'some body',
+  retryCondition: function(res) {
+    return res.body === 'fail';
+  }
 );
 
 ```
