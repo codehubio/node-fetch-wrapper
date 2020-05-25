@@ -2,7 +2,9 @@
 [![Dependencies Status](https://david-dm.org/codehubio/node-fetch-wrapper/status.png)](https://david-dm.org/codehubio/node-fetch-wrapper)
 # a wrapper for node-fetch
 
-a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout and retry.
+a simple wrapper for [node-fetch](https://www.npmjs.com/package/node-fetch), with support for timeout and retry. once enabled (maxAttempts set to > 1), it will
+  - retry when request times out(this is unchangeable)
+  - retry when request matche specific user-defined condition
 
 ## installation
 ```npm install node-fetch-wrapper```
@@ -46,12 +48,14 @@ function defaultRetryCondition(res) {
 // identical to fetch('http://example.com/data')
 wrapper.get('data');
 
-// identical to fetch('https://example.com/write', { method: 'post', body: 'some body'})
+// identical to fetch('https://example.com/write', { method: 'post', body: 'some body'}).
+// note: general setting can be overwritten in specific request
 wrapper.post('write', {
   body: 'some body',
+  maxAttempts: 5
   retryCondition: function(res) {
     return res.body === 'fail';
   }
-);
+});
 
 ```

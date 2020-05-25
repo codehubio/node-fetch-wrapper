@@ -13,7 +13,7 @@ function wait(interval) {
   });
 }
 async function fetchWithRetrial({
-  attempts,
+  maxAttempts,
   retryCondition,
   interval,
   logger,
@@ -22,20 +22,26 @@ async function fetchWithRetrial({
   let shouldRetry = true;
   let res;
   const controller = new AbortController();
-  while(i <= attempts && shouldRetry) {
+  const finalOpts = { maxAttempts,
+    retryCondition,
+    interval,
+    logger,
+    ...opts
+  }
+  while(i <= finalOpts.maxAttempts && shouldRetry) {
     const timeout = setTimeout(controller.abort.bind(controller), this.opts.timeout);
-    logger(`Attempt: ${i} - ${attempts}`);
+    logger(`Attempt: ${i} - ${finalOpts.maxAttempts}`);
     i += 1;
     try {
       const newOpts = {...opts, signal: controller.signal}
       res = await fetch(url, newOpts);
-      shouldRetry = retryCondition && await retryCondition(res);
+      shouldRetry = finalOpts.retryCondition && await finalOpts.retryCondition(res);
       if (shouldRetry) {
         logger(`Got ${res.status} for ${url}. Wait for ${interval} ms before starting new request`);
       }
     } catch (error) {
       logger(error);
-      if (i > attempts) {
+      if (i > finalOpts.maxAttempts) {
         throw error;
       }
     }
@@ -72,7 +78,7 @@ function FetchWrapper(baseUrl, opts = {
   const newVerbose = !!opts.verbose;
   const newLogger = opts.logger || console;
   this.fetch = fetchWithRetrial.bind(this, {
-    attempts: this.opts.maxAttempts,
+    maxAttempts: this.opts.maxAttempts,
     interval: this.opts.interval || 0,
     retryCondition: this.opts.retryCondition.bind(this),
     logger: log.bind(this, newLogger, newVerbose),
@@ -80,7 +86,7 @@ function FetchWrapper(baseUrl, opts = {
 }
 
 function action(method) {
-  return function (uri = '', opts = {}) {
+  return function (uri = '', opts = {}, customrOpts = {}) {
     const headers = {...this.opts.headers, ...opts.headers };
     const newOpts = { ...opts, method, headers};
     const url = urlJoin(this.baseUrl, uri);
