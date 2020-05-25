@@ -23,9 +23,19 @@ const wrapper = new FetchWrapper('http://example.com', {
   // wait for 1 seconds after each trial
   interval: 1000,
   // show debug info
-  verbose: true
+  verbose: true,
+  // retry on which condtion,
+  // default
+  retryCondition: defaultRetryCondition
 });
-
+// by default, the retryCondition is
+function defaultRetryCondition(res) {
+  const shouldRetryStatus =
+    (res.status >= 100 && res.status <= 199) ||
+    (res.status === 429) ||
+    (res.status >= 500 && res.status <= 599);
+  return shouldRetryStatus;
+}
 // identical to fetch('http://example.com/data')
 wrapper.get('data');
 

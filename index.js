@@ -9,60 +9,80 @@ function log(logger, verbose, ...args) {
 }
 function wait(interval) {
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, interval);
+    setTimeout(resolve, interval);
   });
 }
-async function fetchWithRetrial(currentAttempt, {
+async function fetchWithRetrial({
   attempts,
+  retryCondition,
   interval,
   logger,
 }, url, opts) {
-  if (currentAttempt > attempts) {
-    throw new Error(`Tried ${currentAttempt} times and reached over ${attempts} attempt(s)`);
-  }
-  const boundFetch = fetchWithRetrial.bind(this, currentAttempt + 1, { attempts, interval, logger}, url, opts);
-  try {
-    const res =  await fetch(url, opts);
-    if (res.ok) {
-      return res;
+  let i = 1;
+  let shouldRetry = true;
+  let res;
+  const controller = new AbortController();
+  while(i <= attempts && shouldRetry) {
+    const timeout = setTimeout(controller.abort.bind(controller), this.opts.timeout);
+    logger(`Attempt: ${i} - ${attempts}`);
+    i += 1;
+    try {
+      const newOpts = {...opts, signal: controller.signal}
+      res = await fetch(url, newOpts);
+      shouldRetry = retryCondition && await retryCondition(res);
+      if (shouldRetry) {
+        logger(`Got ${res.status} for ${url}. Wait for ${interval} ms before starting new request`);
+      }
+    } catch (error) {
+      logger(error);
+      if (i > attempts) {
+        throw error;
+      }
     }
-    logger(`Got ${res.status} for ${url}. Wait for ${interval} ms before starting new request`);
-    await wait(interval);
-    return await boundFetch();
-  } catch (error) {
-    logger(`Got ${error.message}. Wait for ${interval} ms before starting new request`);
-    await wait(interval);
-    return await boundFetch();
+    if (shouldRetry) {
+      clearTimeout(timeout);
+      await wait(interval);
+    }
   }
+  return res;
 }
-
+function defaultRetryCondition(res) {
+  const shouldRetryStatus =
+    (res.status >= 100 && res.status <= 199) ||
+    (res.status === 429) ||
+    (res.status >= 500 && res.status <= 599);
+  return shouldRetryStatus;
+}
 function FetchWrapper(baseUrl, opts = {
-  headers, timeout, maxAttempts, interval, logger, verbose,
+  headers,
+  timeout,
+  maxAttempts,
+  retryCondition,
+  interval,
+  logger,
+  verbose,
 }) {
   this.baseUrl = baseUrl;
   this.opts = opts || {};;
   this.opts.timeout = this.opts.timeout || 30000;
   this.opts.maxAttempts = this.opts.maxAttempts || 1;
   this.opts.headers = this.opts.headers || {};
+  this.opts.retryCondition = this.opts.retryCondition || defaultRetryCondition;
   
   const newVerbose = !!opts.verbose;
   const newLogger = opts.logger || console;
-  this.fetch = fetchWithRetrial.bind(this, 1, {
+  this.fetch = fetchWithRetrial.bind(this, {
     attempts: this.opts.maxAttempts,
     interval: this.opts.interval || 0,
+    retryCondition: this.opts.retryCondition.bind(this),
     logger: log.bind(this, newLogger, newVerbose),
   });
-  this.controller = new AbortController();
 }
 
 function action(method) {
   return function (uri = '', opts = {}) {
-    const controller = this.controller;
-    const timeout = setTimeout(controller.abort.bind(controller), this.opts.timeout);
     const headers = {...this.opts.headers, ...opts.headers };
-    const newOpts = { ...opts, method, headers, signal: controller.signal };
+    const newOpts = { ...opts, method, headers};
     const url = urlJoin(this.baseUrl, uri);
     return this.fetch(url, newOpts);
   }

@@ -4,7 +4,8 @@
   "description": "A simple wrapper for node-fetch",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/snyk test && ./node_modules/mocha/bin/_mocha --timeout 30000"
+    "test": "./node_modules/mocha/bin/_mocha --timeout 30000",
+    "snyk-test": "./node_modules/.bin/snyk test"
   },
   "repository": {
     "type": "git",
