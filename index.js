@@ -12,24 +12,22 @@ function wait(interval) {
     setTimeout(resolve, interval);
   });
 }
-async function fetchWithRetrial({
-  maxAttempts,
-  retryCondition,
-  interval,
-  logger,
-}, url, opts) {
+async function fetchWithRetrial(originalOpts, url, opts) {
   let i = 1;
   let shouldRetry = true;
   let res;
   const controller = new AbortController();
-  const finalOpts = { maxAttempts,
+  const finalOpts = {
+    ...originalOpts,
+    ...opts
+  }
+  const { maxAttempts,
     retryCondition,
     interval,
     logger,
-    ...opts
-  }
+    timeout } = finalOpts;
   while(i <= finalOpts.maxAttempts && shouldRetry) {
-    const timeout = setTimeout(controller.abort.bind(controller), this.opts.timeout);
+    const timeout = setTimeout(controller.abort.bind(controller), finalOpts.timeout);
     logger(`Attempt: ${i} - ${finalOpts.maxAttempts}`);
     i += 1;
     try {
@@ -45,8 +43,8 @@ async function fetchWithRetrial({
         throw error;
       }
     }
+    clearTimeout(timeout);
     if (shouldRetry) {
-      clearTimeout(timeout);
       await wait(interval);
     }
   }
@@ -69,24 +67,23 @@ function FetchWrapper(baseUrl, opts = {
   verbose,
 }) {
   this.baseUrl = baseUrl;
-  this.opts = opts || {};;
+  this.opts = opts || {};
   this.opts.timeout = this.opts.timeout || 30000;
   this.opts.maxAttempts = this.opts.maxAttempts || 1;
   this.opts.headers = this.opts.headers || {};
   this.opts.retryCondition = this.opts.retryCondition || defaultRetryCondition;
+  this.opts.interval = this.opts.interval || 0;
   
   const newVerbose = !!opts.verbose;
   const newLogger = opts.logger || console;
   this.fetch = fetchWithRetrial.bind(this, {
-    maxAttempts: this.opts.maxAttempts,
-    interval: this.opts.interval || 0,
-    retryCondition: this.opts.retryCondition.bind(this),
+    ...this.opts,
     logger: log.bind(this, newLogger, newVerbose),
-  });
+  }, );
 }
 
 function action(method) {
-  return function (uri = '', opts = {}, customrOpts = {}) {
+  return function (uri = '', opts = {}) {
     const headers = {...this.opts.headers, ...opts.headers };
     const newOpts = { ...opts, method, headers};
     const url = urlJoin(this.baseUrl, uri);
