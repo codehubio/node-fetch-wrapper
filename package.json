@@ -17,9 +17,9 @@
   "author": "hoa <hoa at codehub dot io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/codehubio/fetch-wrapper/issues"
+    "url": "https://github.com/codehubio/node-fetch-wrapper/issues"
   },
-  "homepage": "https://github.com/codehubio/fetch-wrapper#readme",
+  "homepage": "https://github.com/codehubio/node-fetch-wrapper",
   "dependencies": {
     "abort-controller": "^3.0.0",
     "node-fetch": "^2.6.0",
