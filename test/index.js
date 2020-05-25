@@ -17,6 +17,9 @@ describe('node fetch wrapper test', () => {
         try {
           const wrapper = new FetchWrapper('http://localhost:5000/', {
             timeout: 150,
+            maxAttempts: 2,
+            verbose: true,
+            interval: 1000
           });
           await wrapper.get();
           reject('should fail');
@@ -36,6 +39,7 @@ describe('node fetch wrapper test', () => {
         try {
           const wrapper = new FetchWrapper('http://localhost:5000/', {
             timeout: 150,
+            verbose: true,
           });
           await wrapper.get();
           resolve('should be successful');
@@ -58,6 +62,7 @@ describe('node fetch wrapper test', () => {
               'content-type': 'application/json'
             },
             timeout: 150,
+            verbose: true,
           });
           await wrapper.get('', {
             headers: {
