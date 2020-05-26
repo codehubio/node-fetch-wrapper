@@ -12,7 +12,13 @@ function wait(interval) {
     setTimeout(resolve, interval);
   });
 }
-async function fetchWithRetrial(originalOpts, url, opts) {
+async function use(fn) {
+  this.preflightStack.push(fn);
+}
+async function postUse(fn) {
+  this.postflightStack.push(fn);
+}
+async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, url, opts) {
   let i = 1;
   let shouldRetry = true;
   let res;
@@ -26,6 +32,10 @@ async function fetchWithRetrial(originalOpts, url, opts) {
     interval,
     logger,
     timeout } = finalOpts;
+  const newPreFlightStack = [].concat(preFlightStack || []);
+  for (const stack of newPreFlightStack) {
+    await stack(req);
+  }
   while(i <= finalOpts.maxAttempts && shouldRetry) {
     const timeout = setTimeout(controller.abort.bind(controller), finalOpts.timeout);
     logger(`Attempt: ${i} - ${finalOpts.maxAttempts}`);
@@ -48,6 +58,10 @@ async function fetchWithRetrial(originalOpts, url, opts) {
       await wait(interval);
     }
   }
+  const newPostFlightStack = [].concat(postFlightStack || []);
+  for (const stack of newPostFlightStack) {
+    await stack(res);
+  }
   return res;
 }
 function defaultRetryCondition(res) {
@@ -67,6 +81,8 @@ function FetchWrapper(baseUrl, opts = {
   verbose,
 }) {
   this.baseUrl = baseUrl;
+  this.preFlightStack = [];
+  this.postFlightStack = [];
   this.opts = opts || {};
   this.opts.timeout = this.opts.timeout || 30000;
   this.opts.maxAttempts = this.opts.maxAttempts || 1;
@@ -79,7 +95,7 @@ function FetchWrapper(baseUrl, opts = {
   this.fetch = fetchWithRetrial.bind(this, {
     ...this.opts,
     logger: log.bind(this, newLogger, newVerbose),
-  }, );
+  }, this.newPreFlightStack, this.newPostFlightStack);
 }
 
 function action(method) {
