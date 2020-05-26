@@ -34,14 +34,15 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
     timeout } = finalOpts;
   const newPreFlightStack = [].concat(preFlightStack || []);
   for (const stack of newPreFlightStack) {
-    await stack(req);
+    // BE CAREFUL/TODO: How to avoid mutation here?
+    await stack(finalOpts);
   }
   while(i <= finalOpts.maxAttempts && shouldRetry) {
     const timeout = setTimeout(controller.abort.bind(controller), finalOpts.timeout);
     logger(`Attempt: ${i} - ${finalOpts.maxAttempts}`);
     i += 1;
     try {
-      const newOpts = {...opts, signal: controller.signal}
+      const newOpts = {...finalOpts, signal: controller.signal}
       res = await fetch(url, newOpts);
       shouldRetry = finalOpts.retryCondition && await finalOpts.retryCondition(res);
       if (shouldRetry) {
@@ -60,7 +61,7 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
   }
   const newPostFlightStack = [].concat(postFlightStack || []);
   for (const stack of newPostFlightStack) {
-    await stack(res);
+    await stack.bind(finalOpts, res);
   }
   return res;
 }
