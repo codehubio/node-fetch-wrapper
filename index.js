@@ -1,6 +1,9 @@
 const fetch = require('node-fetch');
 const urlJoin = require('url-join');
 const AbortController = require('abort-controller');
+
+const Ext = require('./ext');
+
 function log(logger, verbose, ...args) {
   if (!verbose || !logger) {
     return;
@@ -13,10 +16,10 @@ function wait(interval) {
   });
 }
 async function use(fn) {
-  this.preflightStack.push(fn);
+  this.preFlightStack.push(fn);
 }
 async function postUse(fn) {
-  this.postflightStack.push(fn);
+  this.postFlightStack.push(fn);
 }
 async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, url, opts) {
   let i = 1;
@@ -61,7 +64,7 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
   }
   const newPostFlightStack = [].concat(postFlightStack || []);
   for (const stack of newPostFlightStack) {
-    await stack.bind(finalOpts, res);
+    res = await stack(finalOpts, res);
   }
   return res;
 }
@@ -72,6 +75,7 @@ function defaultRetryCondition(res) {
     (res.status >= 500 && res.status <= 599);
   return shouldRetryStatus;
 }
+
 function FetchWrapper(baseUrl, opts = {
   headers,
   timeout,
@@ -96,7 +100,7 @@ function FetchWrapper(baseUrl, opts = {
   this.fetch = fetchWithRetrial.bind(this, {
     ...this.opts,
     logger: log.bind(this, newLogger, newVerbose),
-  }, this.newPreFlightStack, this.newPostFlightStack);
+  }, this.preFlightStack, this.postFlightStack);
 }
 
 function action(method) {
@@ -107,6 +111,7 @@ function action(method) {
     return this.fetch(url, newOpts);
   }
 }
+
 
 ['post',
   'patch',
@@ -119,6 +124,21 @@ function action(method) {
   'connect'
 ].forEach((method) => {
   FetchWrapper.prototype[method] = action(method);
-})
+});
+
+FetchWrapper.json = function(baseUrl, opts = {
+  headers,
+  timeout,
+  maxAttempts,
+  retryCondition,
+  interval,
+  logger,
+  verbose,
+}) {
+  const fetch = new FetchWrapper(baseUrl, opts);
+  use.bind(fetch)(Ext.preJson);
+  postUse.bind(fetch)(Ext.postJson);
+  return fetch;
+}
 
 module.exports = FetchWrapper;

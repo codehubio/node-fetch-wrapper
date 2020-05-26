@@ -43,6 +43,7 @@ function defaultRetryCondition(res) {
 
 ## example
 
+basically, this module acts like node-fetch (same input/output) with some additional support for timeout/retry
 ```
 
 // identical to fetch('http://example.com/data')
@@ -59,3 +60,38 @@ wrapper.post('write', {
 });
 
 ```
+
+**this module can also be used specifically for json**
+
+```
+const jsonWrapper = new FetchWrapper.json('http://example.com', {
+  // each request's timeout is 15 seconds
+  timeout: 15000,
+  // will try 3 times before finish
+  maxAttempts: 3
+  // wait for 1 seconds after each trial
+  interval: 1000,
+  // show debug info
+  verbose: true,
+  // retry on which condtion,
+  // default
+  retryCondition: defaultRetryCondition
+});
+```
+
+// remmeber to specify json in the request, otherwise error will be thrown
+
+```
+const res = wrapper.post('write', {
+  body: 'some body',
+  maxAttempts: 5
+  json: {
+    key1: 'value1'
+  }
+});
+
+```
+
+this does additional work that calls *res.json()* and assign the body back to res object.
+
+

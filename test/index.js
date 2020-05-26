@@ -207,4 +207,6 @@ describe('node fetch wrapper test', () => {
       });
     });
   });
-})
+});
+
+require('./ext');
