@@ -82,8 +82,7 @@ const jsonWrapper = new FetchWrapper.json('http://example.com', {
 remember to specify json in the request, otherwise error will be thrown
 
 ```
-const res = ```
-.post('write', {
+const res = jsonWrapper.post('write', {
   body: 'some body',
   maxAttempts: 5
   json: {
