@@ -61,7 +61,7 @@ wrapper.post('write', {
 
 ```
 
-**this module can also be used specifically for json**
+**this module can also be used specifically for json:**
 
 ```
 const jsonWrapper = new FetchWrapper.json('http://example.com', {
@@ -79,10 +79,11 @@ const jsonWrapper = new FetchWrapper.json('http://example.com', {
 });
 ```
 
-// remmeber to specify json in the request, otherwise error will be thrown
+remember to specify json in the request, otherwise error will be thrown
 
 ```
-const res = wrapper.post('write', {
+const res = ```
+.post('write', {
   body: 'some body',
   maxAttempts: 5
   json: {
@@ -92,6 +93,6 @@ const res = wrapper.post('write', {
 
 ```
 
-this does additional work that calls *res.json()* and assign the body back to res object.
+this does additional work that calls *res.json()* and assign the *body* back to *res* object.
 
 
