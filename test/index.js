@@ -9,7 +9,7 @@ describe('node fetch wrapper test', () => {
   });
   it('should respect the timeout property', async () => {
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         setTimeout(() => {
           res.end();
         }, 200);
@@ -32,7 +32,7 @@ describe('node fetch wrapper test', () => {
   it('should retry on 503 by default', async () => {
     let count = 0;
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         count += 1;
         res.writeHead(503);
         res.end();
@@ -56,7 +56,7 @@ describe('node fetch wrapper test', () => {
   it('should NOT retry on success', async () => {
     let count = 0;
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         count += 1;
         res.writeHead(count !== 2 ? 503 : 200);
         res.end();
@@ -80,7 +80,7 @@ describe('node fetch wrapper test', () => {
   it('should respect custom retry condition', async () => {
     let count = 0;
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         count += 1;
         res.writeHead(200);
         res.end();
@@ -107,7 +107,7 @@ describe('node fetch wrapper test', () => {
   it('should rewrite custom retry condition', async () => {
     let count = 0;
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         count += 1;
         res.writeHead(500);
         res.end();
@@ -139,7 +139,7 @@ describe('node fetch wrapper test', () => {
   it('should not retry on 404 by default', async () => {
     let count = 0;
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         count += 1;
         res.writeHead(404);
         res.end();
@@ -162,7 +162,7 @@ describe('node fetch wrapper test', () => {
   });
   it('should be successul', async () => {
     await new Promise((resolve, reject) => {
-      server = http.createServer(function (req, res) {
+      server = http.createServer(function (_, res) {
         setTimeout(() => {
           res.end();
         }, 100);
@@ -201,6 +201,43 @@ describe('node fetch wrapper test', () => {
             }
           });
           resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  });
+  it('should assign callback before retrying', async () => {
+    let count = 0;
+    let retryCount = 0;
+    await new Promise((resolve, reject) => {
+      server = http.createServer(function (_, res) {
+        count += 1;
+        res.writeHead(500);
+        res.end();
+      }).listen(5000, async () => {
+        const wrapper = new FetchWrapper('http://localhost:5000/', {
+          timeout: 500,
+          maxAttempts: 3,
+          verbose: true,
+          interval: 200,
+          retryCondition: function(res) {
+            return res.status === 200;
+          }
+        });
+        try {
+          await wrapper.get('', {
+            maxAttempts: 4,
+            retryCondition: function(res) {
+              return res.status === 500;
+            },
+            retryCallback: function(_) {
+              retryCount += 1;
+            }
+          });
+          assert.equal(count, 4, 'should retry 4 times');
+          assert.equal(retryCount, 4, 'should calback retry 4 times');
+          resolve(true)
         } catch (error) {
           reject(error);
         }

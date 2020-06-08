@@ -32,7 +32,9 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
   }
   const {
     interval,
-    logger
+    logger,
+    retryCondition,
+    retryCallback,
   } = finalOpts;
   const newPreFlightStack = [].concat(preFlightStack || []);
   for (const stack of newPreFlightStack) {
@@ -46,9 +48,15 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
     try {
       const newOpts = {...finalOpts, signal: controller.signal}
       res = await fetch(url, newOpts);
-      shouldRetry = finalOpts.retryCondition && await finalOpts.retryCondition(res);
+      shouldRetry = retryCondition &&
+        'function' === typeof retryCondition &&
+        await finalOpts.retryCondition(res);
       if (shouldRetry) {
         logger(`Got ${res.status} for ${url}. Wait for ${interval} ms before starting new request`);
+        if (retryCallback &&
+          'function' === typeof retryCallback) {
+            await finalOpts.retryCallback(res)
+          }
       }
     } catch (error) {
       logger(error);

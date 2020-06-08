@@ -26,8 +26,11 @@ const wrapper = new FetchWrapper('http://example.com', {
   // show debug info
   verbose: true,
   // retry on which condtion,
-  // default
-  retryCondition: defaultRetryCondition
+  retryCondition: defaultRetryCondition,
+  // this function will be called before each retrying attempts. default unassigned.
+  retryCallback: function (res) {
+    console.log('callbacked');
+  }
 });
 ```
 #### by default, the retryCondition has value:
