@@ -30,11 +30,10 @@ async function fetchWithRetrial(originalOpts, preFlightStack, postFlightStack, u
     ...originalOpts,
     ...opts
   }
-  const { maxAttempts,
-    retryCondition,
+  const {
     interval,
-    logger,
-    timeout } = finalOpts;
+    logger
+  } = finalOpts;
   const newPreFlightStack = [].concat(preFlightStack || []);
   for (const stack of newPreFlightStack) {
     // BE CAREFUL/TODO: How to avoid mutation here?
