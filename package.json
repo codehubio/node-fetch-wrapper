@@ -23,7 +23,7 @@
   "homepage": "https://github.com/codehubio/node-fetch-wrapper",
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "url-join": "^4.0.1"
   },
   "devDependencies": {
